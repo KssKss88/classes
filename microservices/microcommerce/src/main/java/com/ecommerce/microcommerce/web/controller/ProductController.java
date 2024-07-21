@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Tag(name="API pour les opérations CRUD sur les produits.")
@@ -81,4 +83,33 @@ public class ProductController {
     public void updateProduit(@RequestBody Product product){
         productDao.save(product);
     }
+
+    @Operation(summary = "Renvoie la marge de chaque produit en stock!")
+    @GetMapping(value = "/AdminProduits")
+    public MappingJacksonValue calculerMargeProduit() {
+        Iterable<Product> produits = productDao.findAll();
+        Map<Product, Integer> produitsAvecMarge = new HashMap<>();
+
+        for (Product produit : produits){
+            int marge = produit.getPrix() - produit.getPrixAchat();
+            produitsAvecMarge.put(produit,marge);
+        }
+        //Filtrage de prixAchat dans les produits
+        SimpleBeanPropertyFilter monFiltre = SimpleBeanPropertyFilter.serializeAllExcept("prixAchat");
+        FilterProvider listDeFiltres = new SimpleFilterProvider().addFilter("monFiltreDynamique", monFiltre);
+
+        //Filtrage de prixAchat dans la Hashmap
+        SimpleBeanPropertyFilter mapFiltre = SimpleBeanPropertyFilter.serializeAllExcept("key.prixAchat");
+        FilterProvider listeDeFiltresMap = new SimpleFilterProvider().addFilter("monFiltreDynamiqueMap", mapFiltre);
+
+        // Combiner les filtres
+        FilterProvider listDeNosFiltres = new SimpleFilterProvider()
+                .addFilter("monFiltreDynamique", monFiltre)
+                .addFilter("monFiltreDynamiqueMap", mapFiltre);
+
+        MappingJacksonValue produitsFiltres = new MappingJacksonValue(produitsAvecMarge);
+        produitsFiltres.setFilters(listDeNosFiltres);
+        return produitsFiltres;
+    }
+
 }
