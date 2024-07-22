@@ -2,6 +2,7 @@ package com.ecommerce.microcommerce.web.controller;
 
 import com.ecommerce.microcommerce.model.Product;
 import com.ecommerce.microcommerce.web.dao.ProductDao;
+import com.ecommerce.microcommerce.web.exceptions.ProduitGratuitException;
 import com.ecommerce.microcommerce.web.exceptions.ProduitIntrouvableException;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
@@ -60,6 +61,7 @@ public class ProductController {
     @Operation(summary = "Ajout d'un produit dans le stock")
     @PostMapping(value ="/Produits")
     public ResponseEntity<Product> ajouterProduit(@Valid @RequestBody Product product) {
+        if(product.getPrix()==0) throw new ProduitGratuitException("Le produit avec l'id " + product.getId() + " ne peut être gratuit.");
         Product productAdded = productDao.save(product);
         if (Objects.isNull(productAdded)) {
             return ResponseEntity.noContent().build();
