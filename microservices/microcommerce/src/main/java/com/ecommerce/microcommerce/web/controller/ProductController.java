@@ -112,4 +112,10 @@ public class ProductController {
         return produitsFiltres;
     }
 
+    @Operation(summary = "Récupère tous les produits triés par leur nom")
+    @GetMapping(value = "/TriProduits")
+    public List<Product> trierProduitsParOrdreAlphabetique(){
+        return productDao.findAllByOrderByNom();
+    }
+
 }
